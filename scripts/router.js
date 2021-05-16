@@ -1,11 +1,58 @@
 // router.js
 
 export const router = {};
+const body = document.querySelector("body");
+const main = document.querySelector("main");
+const title = document.querySelector("header > h1");
 
+const loc = window.location.href;
+function insertAfter(newobj, oldobj) {
+  oldobj.parentNode.insertBefore(newobj, oldobj.nextSibling);
+}
 /**
  * Changes the "page" (state) that your SPA app is currently set to
  */
-router.setState = function() {
+function setTitle(newTitle){
+  document.title = title.innerHTML = newTitle;
+}
+function setPage(state,entry,hist){
+  body.className = state;
+  let newTitle = "Journal Entries";
+
+  switch(state) {
+    case "settings":
+      newTitle = "Settings";
+      setTitle(newTitle);
+      if (hist)
+        history.pushState({page: state},"Settings",loc+"#settings");
+      break;
+    case "single-entry":
+      document.querySelector("entry-page").remove();
+      let newEntry = document.createElement("entry-page");
+      newTitle = "Entry "+entry.index;
+      setTitle(newTitle);
+      newEntry.entry = entry;
+      insertAfter(newEntry,main);
+      if(hist)
+        history.pushState({page: state,entry},newTitle,loc+"#entry"+entry.index);
+      break;
+    default: // home page
+      setTitle(newTitle);
+      if(hist)
+        history.pushState({page: state},newTitle,loc);
+        
+      break;
+  }
+}
+router.setState = function(state,entry) {
+  setPage(state,entry,true);
+}
+  
+window.onpopstate = (event) => {
+  let page = event.state ? event.state.page : "";
+  let entry = event.state ? event.state.entry : null;
+  setPage(page,entry,false);
+}
   /**
    * - There are three states that your SPA app will have
    *    1. The home page
@@ -35,4 +82,3 @@ router.setState = function() {
    *    1. You may add as many helper functions in this file as you like
    *    2. You may modify the parameters of setState() as much as you like
    */
-}
